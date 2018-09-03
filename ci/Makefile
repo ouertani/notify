@@ -13,6 +13,26 @@ list-apps:
 list-services:
 	$(CF) curl "/v2/spaces/${CF_SPACE_ID}/service_instances" | jq -r ".resources[].entity.name"
 
+get-ups-id-%:
+	$(CF) curl "/v2/user_provided_service_instances?q=name:$*" | jq ".resources[].metadata.guid"
+
+get-ups-bindings-%:
+	$(CF) curl "/v2/user_provided_service_instances/$*/service_bindings" | jq ".resources[].entity.app_guid"
+
+get-app-name-%:
+	$(CF) curl "/v2/apps/$*" | jq ".entity.name"
+
+get-ups-apps-%:
+	$(MAKE) -s get-ups-id-$* | \
+		xargs printf -- 'get-ups-bindings-%s\n' | xargs $(MAKE) -s | \
+		xargs printf -- 'get-app-name-%s\n' | xargs $(MAKE) -s
+
+restage-ups-apps-%:
+	$(MAKE) -s get-ups-apps-$* | xargs printf -- 'restage-app-%s\n' | xargs $(MAKE)
+
+restage-app-%:
+	$(CF) restage $*
+
 undeploy-feature-branches:
 	$(RUNNER) python undeploy_closed_branches.py
 

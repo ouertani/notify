@@ -29,6 +29,7 @@ ifneq ($(BRANCH), $(FEATURE))
 endif
 
 SERVICES     = notify-shared notify-api notify-admin aws smtp telstra
+SVC_RESTAGED = $(SERVICES:%=restage-service-%)
 SVC_APPLIED  = $(SERVICES:%=apply-service-%)
 SVC_CREATED  = $(SERVICES:%=create-service-%)
 APPLY_ACTION?= update
@@ -74,6 +75,9 @@ $(API_TARGETS):
 
 apply-services: $(SVC_APPLIED)
 
+$(SVC_RESTAGED): restage-service-%:
+	$(MAKE) -C ci restage-ups-apps-$*
+
 $(SVC_APPLIED): apply-service-%: ci/ups/$(CLD_HOST)/%.json
 	$(CF) $(APPLY_ACTION)-user-provided-service $* -p $<
 
@@ -83,4 +87,7 @@ $(SVC_CREATED): create-service-%:
 create-service-psql:
 	-$(CF) create-service postgres $(PSQL_SVC_PLAN) $(PSQL_SVC_NAME)
 
-.PHONY: cf-login $(TARGETS) $(SVC_APPLIED) $(SVC_CREATED) create-service-psql
+.PHONY:
+	cf-login \
+	$(TARGETS) \
+	$(SVC_APPLIED) $(SVC_CREATED) $(SVC_RESTAGED) create-service-psql

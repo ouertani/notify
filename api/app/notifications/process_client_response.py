@@ -6,6 +6,7 @@ from flask import current_app
 from app import statsd_client
 from app.clients import ClientException
 from app.dao import notifications_dao
+from app.clients.sms.sap import get_sap_responses
 from app.clients.sms.telstra import get_telstra_responses
 from app.clients.sms.twilio import get_twilio_responses
 from app.clients.sms.firetext import get_firetext_responses
@@ -19,6 +20,7 @@ from app.dao.notifications_dao import dao_update_notification
 from app.dao.service_callback_api_dao import get_service_delivery_status_callback_api_for_service
 
 sms_response_mapper = {
+    'SAP': get_sap_responses,
     'Telstra': get_telstra_responses,
     'Twilio': get_twilio_responses,
     'MMG': get_mmg_responses,

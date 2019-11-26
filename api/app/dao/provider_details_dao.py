@@ -26,10 +26,10 @@ def get_provider_details_by_identifier(identifier):
 
 def get_alternative_sms_provider(identifier):
     alternate_provider = None
-    if identifier == 'telstra':
+    if identifier == 'sap':
         alternate_provider = 'twilio'
     elif identifier == 'twilio':
-        alternate_provider = 'telstra'
+        alternate_provider = 'sap'
 
     return ProviderDetails.query.filter_by(identifier=alternate_provider).one()
 

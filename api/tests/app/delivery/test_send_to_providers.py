@@ -37,7 +37,7 @@ from tests.app.db import (
 
 def test_should_return_highest_priority_active_provider(
     restore_provider_details,
-    with_active_telstra_provider,
+    with_active_sap_provider,
 ):
     providers = provider_details_dao.get_provider_details_by_notification_type('sms')
 

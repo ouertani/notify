@@ -818,6 +818,17 @@ def with_active_sap_provider():
 
 
 @pytest.fixture(scope='function')
+def with_active_telstra_provider():
+    # Simulate the Telstra provider actually being active.
+    # This is required because at the time of writing Telstra is not currently
+    # active in the DB but we have some behaviour that we want to test that
+    # relies on being able to switch providers to another active provider.
+    telstra = get_provider_details_by_identifier('telstra')
+    telstra.active = True
+    dao_update_provider_details(telstra)
+
+
+@pytest.fixture(scope='function')
 def smtp_provider():
     return ProviderDetails.query.filter_by(identifier='smtp').one()
 

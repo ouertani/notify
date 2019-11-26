@@ -4,11 +4,11 @@ from werkzeug.contrib.cache import SimpleCache
 from app.clients.sms import SmsClient
 from app.sap_client import Configuration, ApiClient, AuthorizationApi, SMSV20Api
 
+# See https://livelink.sapmobileservices.com/documentation/guides/sms-channel/delivery_statuses/#body-description
 sap_response_map = {
     'SENT': 'sending',
     'DELIVERED': 'delivered',
     'RECEIVED': 'delivered',
-    # Assuming ERROR is always a permanent failure (can't find docs to verify).
     'ERROR': 'permanent-failure',
 }
 

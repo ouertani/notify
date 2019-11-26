@@ -122,7 +122,7 @@ def test_get_current_sms_provider_returns_correct_provider(restore_provider_deta
     assert provider.identifier == 'twilio'
 
 
-@pytest.mark.parametrize('provider_identifier', ['twilio', 'telstra'])
+@pytest.mark.parametrize('provider_identifier', ['twilio', 'sap'])
 def test_get_alternative_sms_provider_returns_expected_provider(notify_db, provider_identifier):
     provider = get_alternative_sms_provider(provider_identifier)
     assert provider.identifier != provider
@@ -158,7 +158,7 @@ def test_toggle_sms_provider_switches_provider(
     mocker,
     restore_provider_details,
     current_sms_provider,
-    with_active_telstra_provider,
+    with_active_sap_provider,
     sample_user
 
 ):
@@ -175,7 +175,7 @@ def test_toggle_sms_provider_switches_provider(
 def test_toggle_sms_provider_switches_when_provider_priorities_are_equal(
     mocker,
     restore_provider_details,
-    with_active_telstra_provider,
+    with_active_sap_provider,
     sample_user
 ):
     mocker.patch('app.provider_details.switch_providers.get_user_by_id', return_value=sample_user)
@@ -197,7 +197,7 @@ def test_toggle_sms_provider_updates_provider_history(
     mocker,
     restore_provider_details,
     current_sms_provider,
-    with_active_telstra_provider,
+    with_active_sap_provider,
     sample_user
 ):
     mocker.patch('app.provider_details.switch_providers.get_user_by_id', return_value=sample_user)
@@ -222,7 +222,7 @@ def test_toggle_sms_provider_updates_provider_history(
 def test_toggle_sms_provider_switches_provider_stores_notify_user_id(
     restore_provider_details,
     sample_user,
-    with_active_telstra_provider,
+    with_active_sap_provider,
     mocker
 ):
     mocker.patch('app.provider_details.switch_providers.get_user_by_id', return_value=sample_user)
@@ -239,7 +239,7 @@ def test_toggle_sms_provider_switches_provider_stores_notify_user_id(
 def test_toggle_sms_provider_switches_provider_stores_notify_user_id_in_history(
     restore_provider_details,
     sample_user,
-    with_active_telstra_provider,
+    with_active_sap_provider,
     mocker
 ):
     mocker.patch('app.provider_details.switch_providers.get_user_by_id', return_value=sample_user)
@@ -273,7 +273,7 @@ def test_can_get_all_provider_history(current_sms_provider):
 
 def test_get_sms_provider_with_equal_priority_returns_provider(
     restore_provider_details,
-    with_active_telstra_provider
+    with_active_sap_provider
 ):
     current_provider = get_current_provider('sms')
     new_provider = get_alternative_sms_provider(current_provider.identifier)

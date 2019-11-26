@@ -1,6 +1,6 @@
 [flake8]
 # Rule definitions: http://flake8.pycqa.org/en/latest/user/error-codes.html
 # W503: line break before binary operator
-exclude = venv*,__pycache__,node_modules,cache,migrations,build
+exclude = venv*,__pycache__,node_modules,cache,migrations,build,app/sap_client
 ignore = W503,E501
 max-complexity = 14

@@ -40,11 +40,8 @@ def validate_callback_data(data, fields, client_name):
 def process_sms_client_response(status, provider_reference, client_name):
     success = None
     errors = None
-    # validate reference
-    if provider_reference == 'send-sms-code':
-        success = "{} callback succeeded: send-sms-code".format(client_name)
-        return success, errors
 
+    # validate reference
     try:
         uuid.UUID(provider_reference, version=4)
     except ValueError:

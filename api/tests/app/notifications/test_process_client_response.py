@@ -13,7 +13,7 @@ from tests.app.db import create_service_callback_api
 
 def test_validate_callback_data_returns_none_when_valid():
     form = {'status': 'good',
-            'reference': 'send-sms-code'}
+            'reference': '67f9b762-061d-407e-9111-9addb6a96d60'}
     fields = ['status', 'reference']
     client_name = 'sms client'
 
@@ -80,13 +80,6 @@ def test_sms_resonse_does_not_call_send_callback_if_no_db_entry(sample_notificat
     reference = str(uuid.uuid4())
     process_sms_client_response(status='3', provider_reference=reference, client_name='MMG')
     send_mock.assert_not_called()
-
-
-def test_process_sms_response_return_success_for_send_sms_code_reference(mocker):
-    success, error = process_sms_client_response(
-        status='000', provider_reference='send-sms-code', client_name='sms-client')
-    assert success == "{} callback succeeded: send-sms-code".format('sms-client')
-    assert error is None
 
 
 def test_process_sms_updates_sent_by_with_client_name_if_not_in_noti(notify_db, sample_notification):

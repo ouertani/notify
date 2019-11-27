@@ -89,31 +89,6 @@ def process_twilio_response(notification_id):
         return jsonify(result='success', message=success), 200
 
 
-@sms_callback_blueprint.route('/mmg', methods=['POST'])
-def process_mmg_response():
-    client_name = 'MMG'
-    data = json.loads(request.data)
-    errors = validate_callback_data(data=data,
-                                    fields=['status', 'CID'],
-                                    client_name=client_name)
-    if errors:
-        raise InvalidRequest(errors, status_code=400)
-
-    success, errors = process_sms_client_response(status=str(data.get('status')),
-                                                  provider_reference=data.get('CID'),
-                                                  client_name=client_name)
-
-    redacted_data = data.copy()
-    redacted_data.pop("MSISDN")
-    current_app.logger.debug(
-        "Full delivery response from {} for notification: {}\n{}".format(client_name, request.form.get('CID'),
-                                                                         redacted_data))
-    if errors:
-        raise InvalidRequest(errors, status_code=400)
-    else:
-        return jsonify(result='success', message=success), 200
-
-
 @sms_callback_blueprint.route('/firetext', methods=['POST'])
 def process_firetext_response():
     client_name = 'Firetext'

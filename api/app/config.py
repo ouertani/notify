@@ -78,9 +78,6 @@ class Config(object):
     # DB conection string
     SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
 
-    # MMG API Key
-    MMG_API_KEY = os.getenv('MMG_API_KEY')
-
     # Firetext API Key
     FIRETEXT_API_KEY = os.getenv("FIRETEXT_API_KEY")
 
@@ -334,8 +331,6 @@ class Config(object):
 
     SMS_INBOUND_WHITELIST = json.loads(os.environ.get('SMS_INBOUND_WHITELIST', '[]'))
     FIRETEXT_INBOUND_SMS_AUTH = json.loads(os.environ.get('FIRETEXT_INBOUND_SMS_AUTH', '[]'))
-    MMG_INBOUND_SMS_AUTH = json.loads(os.environ.get('MMG_INBOUND_SMS_AUTH', '[]'))
-    MMG_INBOUND_SMS_USERNAME = json.loads(os.environ.get('MMG_INBOUND_SMS_USERNAME', '[]'))
 
     ROUTE_SECRET_KEY_1 = os.environ.get('ROUTE_SECRET_KEY_1', '')
     ROUTE_SECRET_KEY_2 = os.environ.get('ROUTE_SECRET_KEY_2', '')
@@ -348,8 +343,6 @@ class Config(object):
     TEMPLATE_PREVIEW_API_KEY = os.environ.get('TEMPLATE_PREVIEW_API_KEY', 'my-secret-key')
 
     LETTER_PROCESSING_DEADLINE = time(17, 30)
-
-    MMG_URL = "https://api.mmg.co.uk/json/api.php"
 
 
 ######################
@@ -419,8 +412,6 @@ class Test(Development):
 
     SMS_INBOUND_WHITELIST = ['203.0.113.195']
     FIRETEXT_INBOUND_SMS_AUTH = ['testkey']
-    MMG_INBOUND_SMS_AUTH = ['testkey']
-    MMG_INBOUND_SMS_USERNAME = ['username']
     TEMPLATE_PREVIEW_API_HOST = 'http://localhost:9999'
 
 

@@ -10,7 +10,6 @@ from app.clients.sms.sap import get_sap_responses
 from app.clients.sms.telstra import get_telstra_responses
 from app.clients.sms.twilio import get_twilio_responses
 from app.clients.sms.firetext import get_firetext_responses
-from app.clients.sms.mmg import get_mmg_responses
 from app.celery.service_callback_tasks import (
     send_delivery_status_to_service,
     create_encrypted_callback_data,
@@ -23,7 +22,6 @@ sms_response_mapper = {
     'SAP': get_sap_responses,
     'Telstra': get_telstra_responses,
     'Twilio': get_twilio_responses,
-    'MMG': get_mmg_responses,
     'Firetext': get_firetext_responses
 }
 

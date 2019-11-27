@@ -87,25 +87,3 @@ def process_twilio_response(notification_id):
         raise InvalidRequest(errors, status_code=400)
     else:
         return jsonify(result='success', message=success), 200
-
-
-@sms_callback_blueprint.route('/firetext', methods=['POST'])
-def process_firetext_response():
-    client_name = 'Firetext'
-    errors = validate_callback_data(data=request.form,
-                                    fields=['status', 'reference'],
-                                    client_name=client_name)
-    if errors:
-        raise InvalidRequest(errors, status_code=400)
-    redacted_data = dict(request.form).copy()
-    redacted_data.pop('mobile')
-    current_app.logger.debug(
-        "Full delivery response from {} for notification: {}\n{}".format(client_name, request.form.get('reference'),
-                                                                         redacted_data))
-    success, errors = process_sms_client_response(status=request.form.get('status'),
-                                                  provider_reference=request.form.get('reference'),
-                                                  client_name=client_name)
-    if errors:
-        raise InvalidRequest(errors, status_code=400)
-    else:
-        return jsonify(result='success', message=success), 200

@@ -40,7 +40,7 @@ from app.utils import (
     get_sydney_midnight_in_utc,
     get_midnight_for_day_before,
 )
-from app import telstra_sms_client
+from app import telstra_sms_client, twilio_sms_client
 from app.sap.oauth2 import OAuth2Client as SAPOAuth2Client
 
 
@@ -289,6 +289,33 @@ def create_sap_oauth2_client(client_id, client_secret):
     db.session.commit()
 
 
+@notify_command(name='buy-twilio-available-phone-number')
+@click.option('-c', '--country_code',
+              required=True,
+              help="The ISO country code of the country from which to purchase the phone number",
+              )
+@click.option('-a', '--address_sid',
+              required=True,
+              help="The Twilio address SID that must be supplied when purchasing the phone number",
+              )
+def buy_twilio_available_phone_number(country_code, address_sid):
+    incoming_phone_number = twilio_sms_client.buy_available_phone_number(country_code, address_sid)
+
+    if incoming_phone_number is None:
+        current_app.logger.error('Could not find an available phone number to buy')
+        sys.exit(1)
+
+    print('Purchased phone number: {}'.format(incoming_phone_number.phone_number))
+    print('SID: {}'.format(incoming_phone_number.sid))
+    print('Capabilities: {}'.format(incoming_phone_number.capabilities))
+
+    sql = "insert into inbound_numbers values('{}', '{}', 'twilio', null, True, now(), null);"
+    db.session.execute(sql.format(uuid.uuid4(), incoming_phone_number.phone_number))
+    db.session.commit()
+
+    print('Inbound phone number now available to allocate')
+
+
 @notify_command(name='remove-sms-sender')
 @click.option('-s', '--sms_sender_id',
               type=click.UUID, required=True,
@@ -307,22 +334,6 @@ def list_user_contacts():
             permissions = user.get_permissions(service_id=service.id)
             if 'manage_users' in permissions or 'manage_settings' in permissions:
                 writer.writerow([service.id, service.name, service.count_as_live, user.email_address])
-
-
-@notify_command(name='insert-inbound-numbers')
-@click.option('-f', '--file_name', required=True,
-              help="""Full path of the file to upload, file is a contains inbound numbers,
-              one number per line. The number must have the format of 07... not 447....""")
-def insert_inbound_numbers_from_file(file_name):
-    print("Inserting inbound numbers from {}".format(file_name))
-    file = open(file_name)
-    sql = "insert into inbound_numbers values('{}', '{}', 'mmg', null, True, now(), null);"
-
-    for line in file:
-        print(line)
-        db.session.execute(sql.format(uuid.uuid4(), line.strip()))
-        db.session.commit()
-    file.close()
 
 
 @notify_command(name='replay-create-pdf-letters')

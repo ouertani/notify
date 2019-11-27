@@ -88,7 +88,7 @@ def test_process_sms_updates_sent_by_with_client_name_if_not_in_noti(notify_db, 
         status='3', provider_reference=str(sample_notification.id), client_name='Twilio')
     assert error is None
     assert success == 'Twilio callback succeeded. reference {} updated'.format(sample_notification.id)
-    assert sample_notification.sent_by == 'mmg'
+    assert sample_notification.sent_by == 'twilio'
 
 
 def test_process_sms_does_not_update_sent_by_if_already_set(mocker, notify_db, sample_notification):
@@ -116,6 +116,6 @@ def test_process_sms_response_raises_client_exception_for_unknown_sms_client(moc
 
 def test_process_sms_response_raises_client_exception_for_unknown_status(mocker):
     with pytest.raises(ClientException) as e:
-        process_sms_client_response(status='000', provider_reference=str(uuid.uuid4()), client_name='Firetext')
+        process_sms_client_response(status='000', provider_reference=str(uuid.uuid4()), client_name='Twilio')
 
-    assert "{} callback failed: status {} not found.".format('Firetext', '000') in str(e.value)
+    assert "{} callback failed: status {} not found.".format('Twilio', '000') in str(e.value)

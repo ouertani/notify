@@ -1,4 +1,6 @@
 from monotonic import monotonic
+import urllib.parse
+
 from app.clients.sms import SmsClient
 from twilio.rest import Client
 
@@ -40,9 +42,11 @@ class TwilioSMSClient(SmsClient):
         self._from_number = from_number
         self._client = Client(account_sid, auth_token)
 
-    def init_app(self, logger, callback_notify_url_host, *args, **kwargs):
+    def init_app(self, logger, callback_notify_url_host, callback_username, callback_password, *args, **kwargs):
         self.logger = logger
         self._callback_notify_url_host = callback_notify_url_host
+        self._callback_username = callback_username
+        self._callback_password = callback_password
 
     @property
     def name(self):
@@ -73,3 +77,39 @@ class TwilioSMSClient(SmsClient):
         finally:
             elapsed_time = monotonic() - start_time
             self.logger.info("Twilio send SMS request for {} finished in {}".format(reference, elapsed_time))
+
+    def buy_available_phone_number(self, country_code, address_sid):
+        mobile = self._client.available_phone_numbers(country_code).mobile.list(
+            sms_enabled=True,
+            limit=1,
+        )
+
+        for record in mobile:
+            incoming_phone_number = self._client.incoming_phone_numbers.create(
+                address_sid=address_sid,
+                phone_number=record.phone_number,
+                sms_url=self.incoming_phone_number_sms_url(),
+            )
+
+            return incoming_phone_number
+
+        return None
+
+    def update_incoming_phone_number(self, sid):
+        self._client.incoming_phone_numbers(sid).update(
+            sms_url=self.incoming_phone_number_sms_url(),
+        )
+
+    def incoming_phone_number_sms_url(self):
+        base = self._callback_notify_url_host if self._callback_notify_url_host else ""
+        if base:
+            # Set username and password into the base URL. We make the
+            # assumption here that the base URL does not already include
+            # credentials.
+            scheme = 'https://' if base.startswith('https://') else 'http://'
+            base = base.replace(scheme, '{}{}:{}@'.format(
+                scheme,
+                urllib.parse.quote(self._callback_username),
+                urllib.parse.quote(self._callback_password),
+            ))
+        return "{}/notifications/sms/receive/twilio".format(base)

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from flask import Blueprint, current_app, request, abort
+from flask import Blueprint, current_app, request, abort, json
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
 
@@ -14,9 +14,43 @@ from app.dao.services_dao import dao_fetch_service_by_inbound_number
 from app.dao.inbound_sms_dao import dao_create_inbound_sms
 from app.models import InboundSms, INBOUND_SMS_TYPE, SMS_TYPE
 from app.errors import register_errors
+from app.sap.oauth2 import require_oauth
 
 receive_notifications_blueprint = Blueprint('receive_notifications', __name__)
 register_errors(receive_notifications_blueprint)
+
+
+@receive_notifications_blueprint.route('/notifications/sms/receive/sap', methods=['POST'])
+@require_oauth(None)
+def receive_sap_sms():
+    response = MessagingResponse()
+
+    data = json.loads(request.data)
+
+    service = fetch_potential_service(data['originatingAddress'], 'sap')
+
+    if not service:
+        # Since this is an issue with our service <-> number mapping, or no
+        # inbound_sms service permission we should still tell SAP that we
+        # received it successfully.
+        return str(response), 200
+
+    statsd_client.incr('inbound.sap.successful')
+
+    inbound = create_inbound_sms_object(service,
+                                        content=data["message"],
+                                        from_number=data['msisdn'],
+                                        provider_ref=data["messageId"],
+                                        provider_name="sap")
+
+    tasks.send_inbound_sms_to_service.apply_async([str(inbound.id), str(service.id)], queue=QueueNames.NOTIFY)
+
+    current_app.logger.debug('{} received inbound SMS with reference {} from SAP'.format(
+        service.id,
+        inbound.provider_reference,
+    ))
+
+    return str(response), 200
 
 
 @receive_notifications_blueprint.route('/notifications/sms/receive/twilio', methods=['POST'])

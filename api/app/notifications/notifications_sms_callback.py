@@ -5,12 +5,14 @@ from flask import request, jsonify
 
 from app.errors import InvalidRequest, register_errors
 from app.notifications.process_client_response import validate_callback_data, process_sms_client_response
+from app.sap.oauth2 import require_oauth
 
 sms_callback_blueprint = Blueprint("sms_callback", __name__, url_prefix="/notifications/sms")
 register_errors(sms_callback_blueprint)
 
 
 @sms_callback_blueprint.route('/sap/<notification_id>', methods=['POST'])
+@require_oauth(None)
 def process_sap_response(notification_id):
     client_name = 'SAP'
     data = json.loads(request.data)

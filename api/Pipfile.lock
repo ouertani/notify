@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9c5ef547ff7d376b303c8aa6ee4378d523c30502af77c43779f08470bf241f8d"
+            "sha256": "f0c97cea3c68b8ebca3f81e6f87cd2d81b60b7cf0466182b9c4de457f810b215"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -617,6 +617,10 @@
                 "sha256:b780f2411b824cb541dbcd2c713d0cb61c7d1bcadae204cdddda2b35cef493ba"
             ],
             "version": "==0.2.1"
+        },
+        "saplivelink365": {
+            "git": "https://github.com/govau/sap-live-link-365-client-python.git",
+            "ref": "9b9957e149c1c6eeec7ebb2837417f6939787505"
         },
         "sentry-sdk": {
             "extras": [

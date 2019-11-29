@@ -33,6 +33,7 @@ itsdangerous = "==1.1.0"
 validatesns = "*"
 authlib = "==0.13"
 cryptography = {git = "https://github.com/pyca/cryptography.git",ref = "master"}
+saplivelink365 = {git = "https://github.com/govau/sap-live-link-365-client-python.git",ref = "master"}
 
 [dev-packages]
 bandit = "==1.5.1"

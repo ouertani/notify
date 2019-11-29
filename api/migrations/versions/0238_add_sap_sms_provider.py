@@ -1,18 +1,17 @@
 """
 
-Revision ID: 0236
-Revises: 0235
-Create Date: 2019-11-26 11:24:31.565916
+Revision ID: 0238
+Revises: 0237
+Create Date: 2019-11-29 13:43:56.438399
 
 """
 from alembic import op
-import sqlalchemy as sa
 from datetime import datetime
 import uuid
 
 
-revision = '0236'
-down_revision = '0235'
+revision = '0238'
+down_revision = '0237'
 
 
 def upgrade():

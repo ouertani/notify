@@ -1,7 +1,7 @@
 import uuid
-
+import urllib.parse
 from datetime import datetime
-
+from requests.auth import _basic_auth_str
 import pytest
 from flask import json
 from freezegun import freeze_time
@@ -14,11 +14,28 @@ from app.dao.notifications_dao import (
 from tests.app.conftest import sample_notification as create_sample_notification
 
 
-def sap_post(client, notification_id, data):
+def fetch_sap_oauth2_token(client, oauth2_client):
+    data = {'grant_type': 'client_credentials'}
+    headers = [
+        ('Authorization', _basic_auth_str(oauth2_client.client_id, oauth2_client.client_secret)),
+        ('Content-Type', 'application/x-www-form-urlencoded')
+    ]
+    response = client.post(
+        '/sap/oauth2/token',
+        data=urllib.parse.urlencode(data),
+        headers=headers,
+    )
+    return json.loads(response.get_data(as_text=True))['access_token']
+
+
+def sap_post(client, oauth2_client, notification_id, data):
+    access_token = fetch_sap_oauth2_token(client, oauth2_client)
+
     return client.post(
         path='/notifications/sms/sap/{}'.format(notification_id),
         data=json.dumps(data),
         headers=[
+            ('Authorization', f'Bearer {access_token}'),
             ('Content-Type', 'application/json'),
             ('X-Forwarded-For', '203.0.113.195, 70.41.3.18, 150.172.238.178')  # fake IPs
         ])
@@ -103,7 +120,7 @@ def test_dvla_ack_calls_does_not_call_letter_notifications_task(client, mocker):
     update_task.assert_not_called()
 
 
-def test_sap_callback_should_not_need_auth(client, notify_db, notify_db_session, mocker):
+def test_sap_callback_should_not_need_auth(client, sample_sap_oauth2_client, notify_db, notify_db_session, mocker):
     mocker.patch('app.statsd_client.incr')
 
     notification = create_sample_notification(
@@ -117,12 +134,12 @@ def test_sap_callback_should_not_need_auth(client, notify_db, notify_db_session,
         "message": "message"
     }
 
-    response = sap_post(client, notification.id, data)
+    response = sap_post(client, sample_sap_oauth2_client, notification.id, data)
 
     assert response.status_code == 200
 
 
-def test_sap_callback_should_return_400_if_no_status(client, notify_db, notify_db_session, mocker):
+def test_sap_callback_should_return_400_if_no_status(client, sample_sap_oauth2_client, notify_db, notify_db_session, mocker):
     mocker.patch('app.statsd_client.incr')
 
     notification = create_sample_notification(
@@ -135,7 +152,7 @@ def test_sap_callback_should_return_400_if_no_status(client, notify_db, notify_d
         "message": "message"
     }
 
-    response = sap_post(client, notification.id, data)
+    response = sap_post(client, sample_sap_oauth2_client, notification.id, data)
     json_resp = json.loads(response.get_data(as_text=True))
 
     assert response.status_code == 400
@@ -143,7 +160,7 @@ def test_sap_callback_should_return_400_if_no_status(client, notify_db, notify_d
     assert json_resp['message'] == ['SAP callback failed: status missing']
 
 
-def test_sap_callback_should_set_status_technical_failure_if_status_unknown(client, notify_db, notify_db_session, mocker):
+def test_sap_callback_should_set_status_technical_failure_if_status_unknown(client, sample_sap_oauth2_client, notify_db, notify_db_session, mocker):
     mocker.patch('app.statsd_client.incr')
 
     notification = create_sample_notification(
@@ -158,13 +175,13 @@ def test_sap_callback_should_set_status_technical_failure_if_status_unknown(clie
     }
 
     with pytest.raises(ClientException) as e:
-        sap_post(client, notification.id, data)
+        sap_post(client, sample_sap_oauth2_client, notification.id, data)
 
     assert get_notification_by_id(notification.id).status == 'technical-failure'
     assert 'SAP callback failed: status UNKNOWN not found.' in str(e.value)
 
 
-def test_sap_callback_returns_200_when_notification_id_is_not_a_valid_uuid(client, mocker):
+def test_sap_callback_returns_200_when_notification_id_is_not_a_valid_uuid(client, sample_sap_oauth2_client, mocker):
     mocker.patch('app.statsd_client.incr')
 
     data = {
@@ -174,7 +191,7 @@ def test_sap_callback_returns_200_when_notification_id_is_not_a_valid_uuid(clien
         "message": "message"
     }
 
-    response = sap_post(client, "1234", data)
+    response = sap_post(client, sample_sap_oauth2_client, "1234", data)
     json_resp = json.loads(response.get_data(as_text=True))
 
     assert response.status_code == 400
@@ -182,7 +199,7 @@ def test_sap_callback_returns_200_when_notification_id_is_not_a_valid_uuid(clien
     assert json_resp['message'] == 'SAP callback with invalid reference 1234'
 
 
-def test_sap_callback_returns_200_if_notification_not_found(client, notify_db, notify_db_session, mocker):
+def test_sap_callback_returns_200_if_notification_not_found(client, sample_sap_oauth2_client, notify_db, notify_db_session, mocker):
     mocker.patch('app.statsd_client.incr')
 
     missing_notification_id = uuid.uuid4()
@@ -194,14 +211,14 @@ def test_sap_callback_returns_200_if_notification_not_found(client, notify_db, n
         "message": "message"
     }
 
-    response = sap_post(client, missing_notification_id, data)
+    response = sap_post(client, sample_sap_oauth2_client, missing_notification_id, data)
     json_resp = json.loads(response.get_data(as_text=True))
 
     assert response.status_code == 200
     assert json_resp['result'] == 'success'
 
 
-def test_sap_callback_should_update_notification_status(notify_db, notify_db_session, client, sample_email_template, mocker):
+def test_sap_callback_should_update_notification_status(notify_db, notify_db_session, client, sample_sap_oauth2_client, sample_email_template, mocker):
     mocker.patch('app.statsd_client.incr')
     send_mock = mocker.patch(
         'app.celery.service_callback_tasks.send_delivery_status_to_service.apply_async'
@@ -226,7 +243,7 @@ def test_sap_callback_should_update_notification_status(notify_db, notify_db_ses
         "message": "message"
     }
 
-    response = sap_post(client, notification.id, data)
+    response = sap_post(client, sample_sap_oauth2_client, notification.id, data)
     json_resp = json.loads(response.get_data(as_text=True))
 
     assert response.status_code == 200
@@ -242,7 +259,7 @@ def test_sap_callback_should_update_notification_status(notify_db, notify_db_ses
     assert send_mock.called_once_with([notification.id], queue="notify-internal-tasks")
 
 
-def test_sap_callback_should_update_notification_status_failed(notify_db, notify_db_session, client, sample_template, mocker):
+def test_sap_callback_should_update_notification_status_failed(notify_db, notify_db_session, client, sample_sap_oauth2_client, sample_template, mocker):
     mocker.patch('app.statsd_client.incr')
     mocker.patch(
         'app.celery.service_callback_tasks.send_delivery_status_to_service.apply_async'
@@ -267,7 +284,7 @@ def test_sap_callback_should_update_notification_status_failed(notify_db, notify
         "message": "message"
     }
 
-    response = sap_post(client, notification.id, data)
+    response = sap_post(client, sample_sap_oauth2_client, notification.id, data)
     json_resp = json.loads(response.get_data(as_text=True))
 
     assert response.status_code == 200
@@ -278,7 +295,7 @@ def test_sap_callback_should_update_notification_status_failed(notify_db, notify
     assert get_notification_by_id(notification.id).status == 'permanent-failure'
 
 
-def test_sap_callback_should_record_statsd(client, notify_db, notify_db_session, mocker):
+def test_sap_callback_should_record_statsd(client, sample_sap_oauth2_client, notify_db, notify_db_session, mocker):
     with freeze_time('2001-01-01T12:00:00'):
         mocker.patch('app.statsd_client.incr')
         mocker.patch('app.statsd_client.timing_with_dates')
@@ -297,7 +314,7 @@ def test_sap_callback_should_record_statsd(client, notify_db, notify_db_session,
             "message": "message"
         }
 
-        sap_post(client, notification.id, data)
+        sap_post(client, sample_sap_oauth2_client, notification.id, data)
 
         app.statsd_client.timing_with_dates.assert_any_call(
             "callback.sap.elapsed-time", datetime.utcnow(), notification.sent_at

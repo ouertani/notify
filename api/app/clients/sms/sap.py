@@ -2,7 +2,7 @@ import functools
 from monotonic import monotonic
 from werkzeug.contrib.cache import SimpleCache
 from app.clients.sms import SmsClient
-from app.sap_client import Configuration, ApiClient, AuthorizationApi, SMSV20Api
+from saplivelink365 import Configuration, ApiClient, AuthorizationApi, SMSV20Api
 
 # See https://livelink.sapmobileservices.com/documentation/guides/sms-channel/delivery_statuses/#body-description
 sap_response_map = {

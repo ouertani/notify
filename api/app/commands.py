@@ -316,40 +316,6 @@ def buy_twilio_available_phone_number(country_code, address_sid):
     print('Inbound phone number now available to allocate')
 
 
-@notify_command(name='create-sap-oauth2-client')
-@click.option('-i', '--client_id', required=True, help="The client's ID")
-@click.option('-s', '--client_secret', required=True, help="The client's secret")
-def create_sap_oauth2_client(client_id, client_secret):
-    """
-    You can generate a secure random string using the following Python code.
-
-    > import string
-    > import secrets
-    > length = 48
-    > ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
-    """
-
-    if len(client_id) != 48:
-        current_app.logger.error('Client ID should be 48 characters long')
-        sys.exit(1)
-    if len(client_id) < 48:
-        current_app.logger.error('Client secret should be at least 48 characters long')
-        sys.exit(1)
-
-    client = SAPOAuth2Client(
-        client_id=client_id,
-        client_secret=client_secret
-    )
-    client.set_client_metadata({
-        "grant_types": [
-            "client_credentials"
-        ]
-    })
-
-    db.session.add(client)
-    db.session.commit()
-
-
 @notify_command(name='remove-sms-sender')
 @click.option('-s', '--sms_sender_id',
               type=click.UUID, required=True,

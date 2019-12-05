@@ -170,6 +170,9 @@ create-migration: MIGRATION_MESSAGE ?= $(shell bash -c 'read -p "Migration messa
 create-migration: ## Create an appropriately ordered migration stub
 	$(RUNNER) flask db revision --rev-id $(MIGRATION_NUMBER) --message "$(MIGRATION_MESSAGE)"
 
+create-sap-oauth2-client:
+	$(RUNNER) flask command create-sap-oauth2-client -i ID -s SE
+
 clean:
 	-rm -r vendor
 
@@ -179,4 +182,5 @@ clean:
 	run run-celery-worker run-celery-beat \
 	deploy deploy-api deploy-celery-worker deploy-dev-celery-worker deploy-celery-beat deploy-dev-celery-beat \
 	run-production \
-	create-migration help clean check-vulnerabilities
+	create-migration help clean check-vulnerabilities \
+	create-sap-oauth2-client

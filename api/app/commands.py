@@ -34,7 +34,7 @@ from app.dao.services_dao import (
 )
 import app.dao.service_sms_sender_dao as sms_sender_dao
 from app.dao.users_dao import (delete_model_user, delete_user_verify_codes)
-from app.models import PROVIDERS, User, SMS_TYPE, EMAIL_TYPE, Notification
+from app.models import PROVIDERS, SMS_PROVIDERS, User, SMS_TYPE, EMAIL_TYPE, Notification
 from app.performance_platform.processing_time import (send_processing_time_for_start_and_end)
 from app.utils import (
     cache_key_for_service_template_usage_per_day,
@@ -296,7 +296,7 @@ def create_sap_oauth2_client(client_id, client_secret):
         raise ex
 
 
-@notify_command(name='buy-twilio-available-phone-number')
+@notify_command(name='twilio-buy-available-phone-number')
 @click.option('-c', '--country_code',
               required=True,
               help="The ISO country code of the country from which to purchase the phone number",
@@ -305,7 +305,7 @@ def create_sap_oauth2_client(client_id, client_secret):
               required=True,
               help="The Twilio address SID that must be supplied when purchasing the phone number",
               )
-def buy_twilio_available_phone_number(country_code, address_sid):
+def twilio_buy_available_phone_number(country_code, address_sid):
     incoming_phone_number = twilio_sms_client.buy_available_phone_number(country_code, address_sid)
 
     if incoming_phone_number is None:
@@ -316,7 +316,10 @@ def buy_twilio_available_phone_number(country_code, address_sid):
     print('SID: {}'.format(incoming_phone_number.sid))
     print('Capabilities: {}'.format(incoming_phone_number.capabilities))
 
-    sql = "insert into inbound_numbers values('{}', '{}', 'twilio', null, True, now(), null);"
+    sql = """
+        insert into inbound_numbers (id, number, provider, service_id, active, created_at, updated_at)
+        values('{}', '{}', 'twilio', null, True, now(), null);
+    """
     db.session.execute(sql.format(uuid.uuid4(), incoming_phone_number.phone_number))
     db.session.commit()
 
@@ -329,6 +332,50 @@ def buy_twilio_available_phone_number(country_code, address_sid):
               help="SMS sender ID of the non-default sender ID to be removed")
 def remove_sms_sender(sms_sender_id):
     sms_sender_dao.dao_remove_sms_sender(sms_sender_id)
+
+
+@notify_command(name='insert-inbound-numbers')
+@click.option('-p', '--provider_name',
+              required=True,
+              type=click.Choice(SMS_PROVIDERS),
+              help="The provider identifier to associate with the numbers (e.g. twilio, sap, telstra)",
+              )
+@click.option('-f', '--file_name',
+              required=True,
+              help="Full path of the file to upload. File must be a CSV file containing inbound numbers, one number per line. Each number must be in E.164 format"
+              )
+@click.option('-i', '--ignore_existing',
+              is_flag=True,
+              help="Set this option to quietly ignore inbound numbers that have already been inserted"
+              )
+def insert_inbound_numbers(provider_name, file_name, ignore_existing):
+    file = open(file_name)
+
+    print("Inserting inbound numbers from {}".format(file_name))
+
+    sql = """
+    insert into inbound_numbers (id, number, provider, service_id, active, created_at, updated_at)
+    values('{}', '{}', '{}', null, True, now(), null);
+    """
+
+    for line in file:
+        line = line.strip()
+
+        try:
+            db.session.execute(sql.format(uuid.uuid4(), line, provider_name))
+            db.session.commit()
+
+            print(line)
+        except IntegrityError as ex:
+            if 'inbound_numbers_number_key' not in str(ex):
+                raise ex
+            if not ignore_existing:
+                raise ex
+
+            db.session.rollback()
+            print(f'{line} (already inserted)')
+
+    file.close()
 
 
 @notify_command(name='contact-users')

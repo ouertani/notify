@@ -177,7 +177,7 @@ export SAP_OAUTH2_CLIENT_ID ?= $(SAP_OAUTH2_CLIENT_ID_DEV)
 export SAP_OAUTH2_CLIENT_SECRET ?= $(SAP_OAUTH2_CLIENT_SECRET_DEV)
 
 create-sap-oauth2-client:
-	$(CF) run-task $(APP)-$(STG) '$$RUNNER flask command create-sap-oauth2-client -i $(SAP_OAUTH2_CLIENT_ID) -s $(SAP_OAUTH2_CLIENT_SECRET)'
+	@$(CF) run-task $(APP)-$(STG) '$$RUNNER flask command create-sap-oauth2-client -i $(SAP_OAUTH2_CLIENT_ID) -s $(SAP_OAUTH2_CLIENT_SECRET)'
 
 clean:
 	-rm -r vendor

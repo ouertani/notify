@@ -153,6 +153,8 @@ deploy: vendor requirements.txt ## Deploy prod application
 deploy-dev: manifest-vars-$(STG).yml vendor requirements.txt
 	$(CF) push $(APP)-$(STG) -f manifest-dev.yml --vars-file $<
 
+	$(MAKE) create-sap-oauth2-client
+
 deploy-celery-worker:
 	APP=notify-celery-worker $(MAKE) deploy
 

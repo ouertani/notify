@@ -12,7 +12,7 @@ register_errors(sms_callback_blueprint)
 
 
 @sms_callback_blueprint.route('/sap/<notification_id>', methods=['POST'])
-@require_oauth(None)
+@require_oauth(scope=None)
 def process_sap_response(notification_id):
     client_name = 'SAP'
     data = json.loads(request.data)

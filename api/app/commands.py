@@ -10,6 +10,7 @@ import flask
 from click_datetime import Datetime as click_dt
 from flask import current_app
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from notifications_utils.statsd_decorators import statsd
 
@@ -285,8 +286,14 @@ def create_sap_oauth2_client(client_id, client_secret):
         ]
     })
 
-    db.session.add(client)
-    db.session.commit()
+    try:
+        db.session.add(client)
+        db.session.commit()
+    except IntegrityError as ex:
+        if 'sap_oauth2_clients_client_id_key' in str(ex):
+            current_app.logger.info('Client already exists with the provided client ID')
+            sys.exit(0)
+        raise ex
 
 
 @notify_command(name='buy-twilio-available-phone-number')

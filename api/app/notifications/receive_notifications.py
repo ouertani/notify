@@ -21,7 +21,7 @@ register_errors(receive_notifications_blueprint)
 
 
 @receive_notifications_blueprint.route('/notifications/sms/receive/sap', methods=['POST'])
-@require_oauth(None)
+@require_oauth(scope=None)
 def receive_sap_sms():
     response = MessagingResponse()
 

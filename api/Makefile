@@ -171,7 +171,7 @@ create-migration: ## Create an appropriately ordered migration stub
 	$(RUNNER) flask db revision --rev-id $(MIGRATION_NUMBER) --message "$(MIGRATION_MESSAGE)"
 
 create-sap-oauth2-client:
-	$(RUNNER) flask command create-sap-oauth2-client -i ID -s SE
+	$(CF) run-task $(APP)-$(STG) '$RUNNER flask command create-sap-oauth2-client -i ID -s SE'
 
 clean:
 	-rm -r vendor

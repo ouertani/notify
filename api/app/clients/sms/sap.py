@@ -39,9 +39,9 @@ class SAPSMSClient(SmsClient):
         self._client_id = client_id
         self._client_secret = client_secret
 
-    def init_app(self, logger, callback_notify_url_host, *args, **kwargs):
+    def init_app(self, logger, notify_host, *args, **kwargs):
         self.logger = logger
-        self._callback_notify_url_host = callback_notify_url_host
+        self.notify_host = notify_host
 
     @property
     def name(self):
@@ -57,8 +57,21 @@ class SAPSMSClient(SmsClient):
     @timed("SAP send SMS request")
     def send_sms(self, to, content, reference, sender=None):
         sms_api = SMSV20Api(self._client)
-        notify_host = self._callback_notify_url_host
-        callback_url = f"{notify_host}/notifications/sms/sap/{reference}" if notify_host else None
+
+        from app.sap.oauth2 import OAuth2Client
+        oauth2_client = OAuth2Client.query.first()
+
+        callback = [
+            {
+                "url": f"{self.notify_host}/notifications/sms/sap/{reference}",
+                "authType": "OAUTH2",
+                "oAuth2": {
+                    "oAuthClient": oauth2_client.client_id,
+                    "oAuthSecret": oauth2_client.client_secret,
+                    "tokenUrl": f"{self.notify_host}/sap/oauth2/token"
+                }
+            }
+        ] if self.notify_host and oauth2_client else None
 
         body = {
             "origin": sender if sender else None,
@@ -66,7 +79,7 @@ class SAPSMSClient(SmsClient):
                 to
             ],
             "message": content,
-            "callback": callback_url,
+            "callback": callback,
             "acknowledgement": True,
             "ackType": "MESSAGE",
             "subject": reference

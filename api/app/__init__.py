@@ -81,15 +81,15 @@ def create_app(application):
     logging.init_app(application, statsd_client)
     sap_sms_client.init_app(
         logger=application.logger,
-        callback_notify_url_host=application.config["API_HOST_NAME"]
+        notify_host=application.config["API_HOST_NAME"]
     )
     telstra_sms_client.init_app(
         logger=application.logger,
-        callback_notify_url_host=application.config["API_HOST_NAME"]
+        notify_host=application.config["API_HOST_NAME"]
     )
     twilio_sms_client.init_app(
         logger=application.logger,
-        callback_notify_url_host=application.config["API_HOST_NAME"],
+        notify_host=application.config["API_HOST_NAME"],
         callback_username=application.config["TWILIO_CALLBACK_USERNAME"],
         callback_password=application.config["TWILIO_CALLBACK_PASSWORD"],
     )

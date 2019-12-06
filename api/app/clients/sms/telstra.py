@@ -39,9 +39,9 @@ class TelstraSMSClient(SmsClient):
         self._client_id = client_id
         self._client_secret = client_secret
 
-    def init_app(self, logger, callback_notify_url_host, *args, **kwargs):
+    def init_app(self, logger, notify_host, *args, **kwargs):
         self.logger = logger
-        self._callback_notify_url_host = callback_notify_url_host
+        self.notify_host = notify_host
 
     @property
     def name(self):
@@ -58,8 +58,7 @@ class TelstraSMSClient(SmsClient):
     @timed("Telstra send SMS request")
     def send_sms(self, to, content, reference, sender=None):
         telstra_api = telstra.MessagingApi(self._client)
-        notify_host = self._callback_notify_url_host
-        notify_url = f"{notify_host}/notifications/sms/telstra/{reference}" if notify_host else None
+        notify_url = f"{self.notify_host}/notifications/sms/telstra/{reference}" if self.notify_host else None
 
         payload = telstra.SendSMSRequest(
             to=to,

@@ -1,7 +1,5 @@
-import functools
-from monotonic import monotonic
 from werkzeug.contrib.cache import SimpleCache
-from app.clients.sms import SmsClient
+from app.clients.sms.utils import timed
 from saplivelink365 import Configuration, ApiClient, AuthorizationApi, SMSV20Api
 
 # See https://livelink.sapmobileservices.com/documentation/guides/sms-channel/delivery_statuses/#body-description
@@ -15,25 +13,11 @@ sap_response_map = {
 auth_cache = SimpleCache()
 
 
-def timed(description):
-    def decorator(fn):
-        @functools.wraps(fn)
-        def inner(self, *args, **kwargs):
-            start_time = monotonic()
-            result = fn(self, *args, **kwargs)
-            elapsed_time = monotonic() - start_time
-            self.logger.info(f"{description} finished in {elapsed_time}")
-            return result
-
-        return inner
-    return decorator
-
-
 def get_sap_responses(status):
     return sap_response_map[status]
 
 
-class SAPSMSClient(SmsClient):
+class SAPSMSClient:
     def __init__(self, client_id=None, client_secret=None, *args, **kwargs):
         super(SAPSMSClient, self).__init__(*args, **kwargs)
         self._client_id = client_id

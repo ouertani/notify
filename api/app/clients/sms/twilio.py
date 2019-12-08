@@ -1,7 +1,6 @@
 from monotonic import monotonic
 import urllib.parse
 
-from app.clients.sms import SmsClient
 from twilio.rest import Client
 
 # https://www.twilio.com/docs/sms/api/message#sms-status-values
@@ -30,7 +29,7 @@ def get_twilio_responses(status):
     return twilio_response_map[status]
 
 
-class TwilioSMSClient(SmsClient):
+class TwilioSMSClient:
     def __init__(self,
                  account_sid=None,
                  auth_token=None,

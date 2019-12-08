@@ -1,6 +1,4 @@
-import functools
-from monotonic import monotonic
-from app.clients.sms import SmsClient
+from app.clients.sms.utils import timed
 import Telstra_Messaging as telstra
 
 telstra_response_map = {
@@ -15,25 +13,11 @@ telstra_response_map = {
 }
 
 
-def timed(description):
-    def decorator(fn):
-        @functools.wraps(fn)
-        def inner(self, *args, **kwargs):
-            start_time = monotonic()
-            result = fn(self, *args, **kwargs)
-            elapsed_time = monotonic() - start_time
-            self.logger.info(f"{description} finished in {elapsed_time}")
-            return result
-
-        return inner
-    return decorator
-
-
 def get_telstra_responses(status):
     return telstra_response_map[status]
 
 
-class TelstraSMSClient(SmsClient):
+class TelstraSMSClient:
     def __init__(self, client_id=None, client_secret=None, *args, **kwargs):
         super(TelstraSMSClient, self).__init__(*args, **kwargs)
         self._client_id = client_id

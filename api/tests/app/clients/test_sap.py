@@ -1,7 +1,5 @@
 import json
 import pytest
-import requests_mock
-from urllib.parse import parse_qsl
 from urllib3_mock import Responses
 import saplivelink365
 

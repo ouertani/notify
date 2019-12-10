@@ -6,21 +6,19 @@ name = "pypi"
 [packages]
 notifications-utils = {editable = true,path = "."}
 itsdangerous = "==1.1.0"
-flask = "~=1.1.1"
+flask = "==1.1.1"
+mistune = "==0.8.4"
 
 [dev-packages]
 bandit = "==1.5.1"
 pytest = "==3.6.4"
-pytest-mock = "*"
-pytest-cov = "*"
+pytest-mock = "==1.10.0"
+pytest-cov = "==2.6.0"
 pytest-xdist = "==1.22.2"
-requests-mock = "*"
-freezegun = "*"
-"flake8" = "*"
-pyyaml = ">=4.2b4"
-
-[requires]
-python_version = "3.6"
+requests-mock = "==1.4.0"
+freezegun = "==0.3.10"
+flake8 = "==3.7.9"
+pyyaml = "==5.2"
 
 [pipenv]
 allow_prereleases = true

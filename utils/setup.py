@@ -124,6 +124,7 @@ setup(
         "click==7.0",
         "docutils==0.15.2",
         "flask==1.1.1",
+        "flask-redis==0.4.0",
         "idna==2.8",
         "itsdangerous==1.1.0",
         "jinja2==2.10.3",

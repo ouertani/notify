@@ -334,48 +334,42 @@ def remove_sms_sender(sms_sender_id):
     sms_sender_dao.dao_remove_sms_sender(sms_sender_id)
 
 
-@notify_command(name='insert-inbound-numbers')
+@notify_command(name='insert-inbound-number')
 @click.option('-p', '--provider_name',
               required=True,
               type=click.Choice(SMS_PROVIDERS),
               help="The provider identifier to associate with the numbers (e.g. twilio, sap, telstra)",
               )
-@click.option('-f', '--file_name',
+@click.option('-n', '--number',
               required=True,
-              help="Full path of the file to upload. File must be a CSV file containing inbound numbers, one number per line. Each number must be in E.164 format"
+              help="The mobile number in E.164 format to insert"
               )
 @click.option('-i', '--ignore_existing',
               is_flag=True,
               help="Set this option to quietly ignore inbound numbers that have already been inserted"
               )
-def insert_inbound_numbers(provider_name, file_name, ignore_existing):
-    file = open(file_name)
-
-    print("Inserting inbound numbers from {}".format(file_name))
-
+def insert_inbound_number(provider_name, number, ignore_existing):
     sql = """
     insert into inbound_numbers (id, number, provider, service_id, active, created_at, updated_at)
     values('{}', '{}', '{}', null, True, now(), null);
     """
 
-    for line in file:
-        line = line.strip()
+    number = number.strip()
 
-        try:
-            db.session.execute(sql.format(uuid.uuid4(), line, provider_name))
-            db.session.commit()
+    try:
+        db.session.execute(sql.format(uuid.uuid4(), number, provider_name))
+        db.session.commit()
 
-            print(line)
-        except IntegrityError as ex:
-            if 'inbound_numbers_number_key' not in str(ex):
-                raise ex
-            if not ignore_existing:
-                raise ex
+        print(number)
+    except IntegrityError as ex:
+        if 'inbound_numbers_number_key' not in str(ex):
+            raise ex
+        if not ignore_existing:
+            raise ex
 
-            db.session.rollback()
-            print(f'{line} (already inserted)')
+        db.session.rollback()
+        print(f'{number} (already inserted)')
 
-    file.close()
 
 
 @notify_command(name='contact-users')

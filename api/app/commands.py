@@ -360,7 +360,7 @@ def insert_inbound_number(provider_name, number, ignore_existing):
         db.session.execute(sql.format(uuid.uuid4(), number, provider_name))
         db.session.commit()
 
-        print(number)
+        print('Number inserted')
     except IntegrityError as ex:
         if 'inbound_numbers_number_key' not in str(ex):
             raise ex
@@ -368,7 +368,7 @@ def insert_inbound_number(provider_name, number, ignore_existing):
             raise ex
 
         db.session.rollback()
-        print(f'{number} (already inserted)')
+        print('Number already inserted')
 
 
 

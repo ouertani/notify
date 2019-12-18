@@ -1190,7 +1190,7 @@ class Notification(db.Model):
             If the notification type is SMS, this is the E.164 formatted phone
             number.
             If the notification type is email, this is the email address
-            stripped of all white space,.
+            stripped of all white space.
     """
 
     __tablename__ = 'notifications'

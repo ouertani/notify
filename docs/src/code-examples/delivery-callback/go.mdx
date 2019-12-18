@@ -15,8 +15,6 @@ import (
 
 func main() {
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Delivery callback received")
-
 		// You should check this matches the one you provided to Notify.
 		// If it does not match, then forbid and abort this request.
 		log.Printf("Authorization header: %v", r.Header.Get("authorization"))
@@ -46,7 +44,7 @@ func main() {
 			return
 		}
 
-		log.Println("Received inbound message:")
+		log.Println("Delivery status update:")
 		log.Printf("- ID: %s", req.ID)
 		log.Printf("- Reference: %s", req.Reference)
 		log.Printf("- To: %s", req.To)

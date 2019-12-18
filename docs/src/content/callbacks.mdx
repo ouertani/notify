@@ -111,8 +111,8 @@ The JSON message that Notify sends has this format:
 <SimplePanel label={<H3>Fields</H3>}>
 <Parameters>
   <Parameter name="id" kind="UUID">Notify’s ID for the message</Parameter>
-  <Parameter name="source_number" kind="string">The number the message was sent from (the original recipient’s number)</Parameter>
-  <Parameter name="destination_number" kind="string">The number the message was sent to (your service’s number)</Parameter>
+  <Parameter name="source_number" kind="string">The E.164 formatted phone number the message was sent from (the original recipient’s number)</Parameter>
+  <Parameter name="destination_number" kind="string">The E.164 formatted phone number the message was sent to (your service’s number)</Parameter>
   <Parameter name="message" kind="string">The content of the received message</Parameter>
   <Parameter name="date_received" kind="ISO-8601 string">The UTC datetime that the message was received by Notify</Parameter>
 </Parameters>

@@ -371,7 +371,6 @@ def insert_inbound_number(provider_name, number, ignore_existing):
         print('Number already inserted')
 
 
-
 @notify_command(name='contact-users')
 def list_user_contacts():
     writer = csv.writer(sys.stdout)
